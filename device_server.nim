@@ -4,6 +4,8 @@ import json
 import osproc
 import strutils
 
+const INSTRUMENTS = "instruments -s devices"
+const GREP = "| grep -v Simulator"
 var wdaPortCount: int = 8000
 
 type
@@ -20,12 +22,15 @@ proc parseDeviceList(textList: string): auto =
   let devicesTextList = textList.split('\n')
   var jsonSeq:  seq[Device]
 
-  for device in devicesTextList[1..devicesTextList.len - 2]:
-    var deviceValues = device.split(' ')
+  for device in devicesTextList[2..devicesTextList.len - 2]:
+    var
+      deviceName = device.substr(0, device.find('(') - 1).strip()
+      deviceVersion = device.substr(device.find('(') + 1, device.find(')') - 1)
+      deviceUDID = device.substr(device.find('[') + 1, device.find(']') - 1)
     var d: Device
-    d.name = deviceValues[0]
-    d.version = deviceValues[1].substr(1, deviceValues[1].len - 2)
-    d.udid = deviceValues[2].substr(1, deviceValues[2].len - 2)
+    d.name = deviceName
+    d.version = deviceVersion
+    d.udid = deviceUDID
     wdaPortCount += 1
     d.wdaPort = wdaPortCount
     jsonSeq.add(d)
@@ -33,7 +38,7 @@ proc parseDeviceList(textList: string): auto =
   return jsonSeq
   
 proc getLocalDevices(): seq =
-  return execProcess("cat mock.txt | grep -v Simulator").parseDeviceList()
+  return execProcess(INSTRUMENTS & GREP).parseDeviceList()
 
 proc getDevicesJson(): JsonNode =
   var deviceList = getLocalDevices()
