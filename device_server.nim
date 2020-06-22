@@ -24,8 +24,8 @@ proc parseDeviceList(textList: string): auto =
     var deviceValues = device.split(' ')
     var d: Device
     d.name = deviceValues[0]
-    d.version = deviceValues[1]
-    d.udid = deviceValues[2]
+    d.version = deviceValues[1].substr(1, deviceValues[1].len - 2)
+    d.udid = deviceValues[2].substr(1, deviceValues[2].len - 2)
     wdaPortCount += 1
     d.wdaPort = wdaPortCount
     jsonSeq.add(d)
